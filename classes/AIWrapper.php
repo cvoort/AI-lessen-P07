@@ -14,6 +14,33 @@ class AIWrapper
         }
     }
 
+    private function callOpenAI($prompt, $apiKey, $model)
+    {
+        $url = "https://api.openAI.io/v1/chat/completions";
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        ];
+
+        $data = [
+            'model' => $model,
+            'messages' => [['role' => 'system', 'content' => 'Je bent een behulpzame assistent.'],
+                ['role' => 'user', 'content' => $prompt]]
+        ];
+
+        // API-verzoek versturen met cURL
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        return json_decode($response, true);
+    }
+
+
     public function processInput($ingredients){
         if (empty($ingredients)) {
             throw new \Exception('Geen ingredienten opgegeven');
@@ -21,13 +48,18 @@ class AIWrapper
 
         $this->ingredients = $ingredients;
         // Later hier API aanroepen
+        $apiKey = API_KEY;
+        $model = "gpt-3.5-turbo";
+        $systemPrompt = "Je bent een chef-kok. Maak een recept met deze ingrediënten:";
+        $this->response = $this->callOpenAI($systemPrompt . $ingredients, $apiKey, $model);
         return true;
     }
 
     public function getResponse(){
         // Voorlopig een standaard bericht teruggeven
         $ingredientsList = implode(',', $this->ingredients);
-        $this->response = "Recept met $ingredientsList wordt verwerkt";
+//        $this->response = "Recept met $ingredientsList wordt verwerkt";
+        $this->response = "<div class='recipe'>" . nl2br($this->response['choices'][0]['message']['content']) . "</div>";
         return $this->response;
     }
 }
