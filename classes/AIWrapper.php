@@ -4,62 +4,132 @@ namespace classes;
 
 class AIWrapper
 {
-    private $ingredients = [];
-    private $response = '';
+//    private $ingredients = [];
+//    private $response = '';
+    private $apiKey;
+    private $model;
+    private $apiUrl = "https://api.openai.com/v1/chat/completions";
 
-    public function __construct(){
+    public function __construct($apiKey, $model = 'gpt-3.5-turbo'){
         // Controleer of config beschikbaar is
-        if (!defined('API_KEY')) {
-            require_once __DIR__ . '/../config/config.php';
-        }
+//        if (!defined('API_KEY')) {
+//            require_once __DIR__ . '/../config/config.php';
+//        }
+        $this->apiKey = $apiKey;
+        $this->model = $model;
     }
 
-    private function callOpenAI($prompt, $apiKey, $model)
+    /**
+     * @throws \Exception
+     */
+    private function callOpenAI($prompt)
     {
-        $url = "https://api.openAI.io/v1/chat/completions";
-        $headers = [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $apiKey,
-        ];
+//        $url = "https://api.openAI.io/v1/chat/completions";
+//        $headers = [
+//            'Content-Type: application/json',
+//            'Authorization: Bearer ' . $this->apiKey,
+//        ];
 
-        $data = [
-            'model' => $model,
-            'messages' => [['role' => 'system', 'content' => 'Je bent een behulpzame assistent.'],
-                ['role' => 'user', 'content' => $prompt]]
-        ];
+        try {
+            $data = [
+                'model' => $this->model,
+                'messages' => [
+                    ['role' => 'system', 'content' => 'Je bent een expert chef.'],
+                    ['role' => 'user', 'content' => $prompt]
+                ],
+                'temperature' => 0.7
+            ];
 
-        // API-verzoek versturen met cURL
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        $response = curl_exec($ch);
-        curl_close($ch);
+            // API-verzoek versturen met cURL
+            $ch = curl_init($this->apiUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $this->apiKey
+            ]);
 
-        return json_decode($response, true);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (curl_errno($ch)) {
+                throw new \Exception('cUrl error: ' . curl_error($ch));
+            }
+
+            curl_close($ch);
+
+            return $this->handleResponse($response, $httpCode);
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+            return $error;
+        }
     }
 
-
-    public function processInput($ingredients){
-        if (empty($ingredients)) {
-            throw new \Exception('Geen ingredienten opgegeven');
+    /**
+     * @throws \Exception
+     */
+    private function handleResponse($response, $httpCode) {
+        if ($httpCode != 200) {
+            $error = json_decode($response, true);
+            $message = isset($error['error']['message']) ?
+                $error['error']['message'] : 'Onbekende API fout';
+            throw new \Exception('API error (Code: ' . $httpCode . '): ' . $message);
         }
 
-        $this->ingredients = $ingredients;
-        // Later hier API aanroepen
-        $apiKey = API_KEY;
-        $model = "gpt-3.5-turbo";
-        $systemPrompt = "Je bent een chef-kok. Maak een recept met deze ingrediënten:";
-        $this->response = $this->callOpenAI($systemPrompt . $ingredients, $apiKey, $model);
-        return true;
+        $decoded = json_decode($response, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('JSON decode error: ' . json_last_error_msg());
+        }
+
+        if (!isset($decoded['choices'][0]['message']['content'])) {
+            throw new \Exception('Onverwachte API response structuur');
+        }
+
+        return $decoded['choices'][0]['message']['content'];
     }
 
-    public function getResponse(){
+
+//    public function processInput($ingredients){
+//        if (empty($ingredients)) {
+//            throw new \Exception('Geen ingredienten opgegeven');
+//        }
+//
+//        $this->ingredients = $ingredients;
+//        // Later hier API aanroepen
+////        $apiKey = API_KEY;
+////        $systemPrompt = "Je bent een chef-kok. Maak een recept met deze ingrediënten:";
+////        $this->response = $this->callOpenAI($systemPrompt . $ingredients, $apiKey, $model);
+//        return true;
+//    }
+
+    /**
+     * @throws \Exception
+     */
+    public function generateRecipe($ingredients){
+        if (!is_array($ingredients)) {
+            throw new \Exception('Ingrediënten moeten als array worden doorgegeven');
+        }
+
+        if (count($ingredients) === 0) {
+            throw new \Exception('Geef minimaal 1 ingrediënt op ');
+        }
+
         // Voorlopig een standaard bericht teruggeven
-        $ingredientsList = implode(',', $this->ingredients);
-//        $this->response = "Recept met $ingredientsList wordt verwerkt";
-        $this->response = "<div class='recipe'>" . nl2br($this->response['choices'][0]['message']['content']) . "</div>";
-        return $this->response;
+        $ingredientsList = implode(', ', $ingredients);
+
+        $prompt = <<<EOT
+Genereer een recept met de volgende ingrediënten: $ingredientsList.
+Het recept moet de volgende onderdelen bevatten:
+1. Een creatieve naam voor het gerecht
+2. Een lijst met alle benodigde ingrediënten met hoeveelheden
+3. Stap-voor-stap bereidingswijze
+4. Geschatte bereidingstijd
+5. Aantal personen
+EOT;
+
+
+        return $this->callOpenAI($prompt);
     }
 }

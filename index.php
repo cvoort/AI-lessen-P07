@@ -1,3 +1,41 @@
+<?php
+//global $error, $recipe;
+
+use classes\AIWrapper;
+
+require_once 'config/config.php';
+require_once 'classes/AIWrapper.php';
+//require 'process.php';
+
+$recipe = '';
+$error = '';
+
+// Controleer of het formulier is verzonden
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['ingredients'])) {
+    try {
+        $ingredients = explode(', ', $_POST['ingredients']);
+        $ingredients = array_map('trim', $ingredients);
+
+        // Maak een nieuwe instantie van de AIWrapper
+        $wrapper = new AIWrapper(API_KEY);
+
+        // Verwerk de ingrediënten
+        $recipe = $wrapper->generateRecipe($ingredients);
+
+    } catch (\Exception $e) {
+        // Stuur terug naar index met foutmelding
+//        header('Location: index.php?message=Fout: ' . urlencode($e->getMessage()));
+        $error = $e->getMessage();
+        exit;
+    }
+}
+//else {
+    // Als het formulier niet correct is verzonden
+//    header('Location: index.php?message=Ongeldig verzoek');
+//    exit;
+//}
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -15,20 +53,28 @@
 <body>
 <div class="container">
     <h1>AI Recept Generator</h1>
+
+    <?php if ($error): ?>
+        <div class="error"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+
     <p>Voer hieronder je ingrediënten in en ontvang een recept!</p>
 
-    <form action="process.php" method="POST">
+<!--    <form action="process.php" method="POST">-->
+    <form method="POST">
         <div class="form-group">
             <label for="ingredients">Ingrediënten (gescheiden door komma's):</label>
-            <textarea name="ingredients" id="ingredients" rows="4" required
-                      placeholder="bijv. ui, knoflook, tomaat, pasta"></textarea>
+            <textarea name="ingredients" id="ingredients" rows="3" required
+                      placeholder="bijv. ui, knoflook, tomaat, pasta"><?php
+                echo isset($_POST['ingredients']) ? htmlspecialchars($_POST['ingredients']) : '';
+                ?></textarea>
         </div>
         <button type="submit">Genereer Recept</button>
     </form>
-
-    <?php if (isset($_GET['message'])): ?>
-        <div class="message">
-            <?php echo htmlspecialchars($_GET['message']); ?>
+    <?php if ($recipe): ?>
+        <div class="recipe">
+            <h2>Gegenereerd Recept</h2>
+            <pre><?php echo htmlspecialchars($recipe); ?></pre>
         </div>
     <?php endif; ?>
 </div>
