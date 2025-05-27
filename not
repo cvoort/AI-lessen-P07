@@ -35,3 +35,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $response = callOpenAI($systemPrompt . $ingredients, $apiKey, $model);
     echo "<div class='recipe'>" . nl2br($response['choices'][0]['message']['content']) . "</div>";
 }
+
+
+$prompt = <<<EOT
+Genereer een recept met de volgende ingrediënten: $ingredientsList.
+Het recept moet de volgende onderdelen bevatten:
+1. Een creatieve naam voor het gerecht
+2. Een lijst met alle benodigde ingrediënten met hoeveelheden
+3. Stap-voor-stap bereidingswijze
+4. Geschatte bereidingstijd
+5. Aantal personen
+EOT;

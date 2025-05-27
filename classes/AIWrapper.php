@@ -40,6 +40,7 @@ class AIWrapper
                 'temperature' => 0.7
             ];
 
+
             // API-verzoek versturen met cURL
             $ch = curl_init($this->apiUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -120,13 +121,15 @@ class AIWrapper
         $ingredientsList = implode(', ', $ingredients);
 
         $prompt = <<<EOT
-Genereer een recept met de volgende ingrediënten: $ingredientsList.
-Het recept moet de volgende onderdelen bevatten:
-1. Een creatieve naam voor het gerecht
-2. Een lijst met alle benodigde ingrediënten met hoeveelheden
-3. Stap-voor-stap bereidingswijze
-4. Geschatte bereidingstijd
-5. Aantal personen
+Geef me een recept op basis van deze ingrediënten: $ingredientsList.
+Retourneer ALLEEN een JSON object met de volgende structuur:
+{
+    \"naam\": \"[receptnaam]\",
+    \"ingrediënten\": [\"ingrediënt1\", \"ingrediënt2\", ...],
+    \"bereidingstijd\": \"[tijd in minuten]\",
+    \"stappen\": [\"stap1\", \"stap2\", ...],
+    \"moeilijkheidsgraad\": \"[makkelijk/gemiddeld/moeilijk]\"
+}
 EOT;
 
 

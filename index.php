@@ -2,12 +2,14 @@
 //global $error, $recipe;
 
 use classes\AIWrapper;
+use classes\RecipeFormatter;
 
 require_once 'config/config.php';
 require_once 'classes/AIWrapper.php';
+require_once 'classes/RecipeFormatter.php';
 //require 'process.php';
 
-$recipe = '';
+$recepten = [];
 $error = '';
 
 // Controleer of het formulier is verzonden
@@ -20,7 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['ingredients'])) {
         $wrapper = new AIWrapper(API_KEY);
 
         // Verwerk de ingrediënten
-        $recipe = $wrapper->generateRecipe($ingredients);
+        $rawOutput = $wrapper->generateRecipe($ingredients);
+
+        // Gebruik de formatter om de output te verwerken
+        $formatter = new RecipeFormatter();
+        $recepten = $formatter->formatRecipe($rawOutput);
 
     } catch (\Exception $e) {
         // Stuur terug naar index met foutmelding
@@ -71,12 +77,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['ingredients'])) {
         </div>
         <button type="submit">Genereer Recept</button>
     </form>
-    <?php if ($recipe): ?>
-        <div class="recipe">
-            <h2>Gegenereerd Recept</h2>
-            <pre><?php echo htmlspecialchars($recipe); ?></pre>
+<!--    --><?php //if ($recipe): ?>
+<!--        <div class="recipe">-->
+<!--            <h2>Gegenereerd Recept</h2>-->
+<!--            <pre>--><?php //echo htmlspecialchars($recipe); ?><!--</pre>-->
+<!--        </div>-->
+<!--    --><?php //endif; ?>
+
+    <?php if ($recepten) : ?>
+    <?php foreach($recepten as $recept): ?>
+
+    <div class="recipe-card">
+        <h2> <?=htmlspecialchars($recept->naam) ?></h2>
+        <div class="recipe-details">
+            <p><strong>Bereidingstijd:</strong> <?= htmlspecialchars($recept->bereidingstijd)?> </p>
+            <p><strong>Moeilijkheidsgraad:</strong> <?= htmlspecialchars($recept->moeilijkheidsgraad) ?></p>
         </div>
-    <?php endif; ?>
+
+        <h3>Ingrediënten:</h3>
+        <ul>
+            <?php foreach ($recept->ingredienten as $ingredient) {
+                echo '<li>' . htmlspecialchars($ingredient) . '</li>';
+            } ?>
+        </ul>
+
+        <h3>Bereidingswijze:</h3>
+        <ol>
+            <?php foreach ($recept->stappen as $stap) {
+                echo '<li>' . htmlspecialchars($stap) . '</li>';
+            } ?>
+        </ol>
+    </div>
+        <?php endforeach ?>
+    <?php endif ?>
 </div>
 </body>
 </html>
