@@ -2,6 +2,8 @@
 
 namespace classes;
 
+use Exception;
+
 class AIWrapper
 {
 //    private $ingredients = [];
@@ -20,7 +22,7 @@ class AIWrapper
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function callOpenAI($prompt)
     {
@@ -55,37 +57,37 @@ class AIWrapper
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
             if (curl_errno($ch)) {
-                throw new \Exception('cUrl error: ' . curl_error($ch));
+                throw new Exception('cUrl error: ' . curl_error($ch));
             }
 
             curl_close($ch);
 
             return $this->handleResponse($response, $httpCode);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $error = $e->getMessage();
             return $error;
         }
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function handleResponse($response, $httpCode) {
         if ($httpCode != 200) {
             $error = json_decode($response, true);
             $message = isset($error['error']['message']) ?
                 $error['error']['message'] : 'Onbekende API fout';
-            throw new \Exception('API error (Code: ' . $httpCode . '): ' . $message);
+            throw new Exception('API error (Code: ' . $httpCode . '): ' . $message);
         }
 
         $decoded = json_decode($response, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('JSON decode error: ' . json_last_error_msg());
+            throw new Exception('JSON decode error: ' . json_last_error_msg());
         }
 
         if (!isset($decoded['choices'][0]['message']['content'])) {
-            throw new \Exception('Onverwachte API response structuur');
+            throw new Exception('Onverwachte API response structuur');
         }
 
         return $decoded['choices'][0]['message']['content'];
@@ -106,15 +108,15 @@ class AIWrapper
 //    }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function generateRecipe($ingredients){
         if (!is_array($ingredients)) {
-            throw new \Exception('Ingrediënten moeten als array worden doorgegeven');
+            throw new Exception('Ingrediënten moeten als array worden doorgegeven');
         }
 
         if (count($ingredients) === 0) {
-            throw new \Exception('Geef minimaal 1 ingrediënt op ');
+            throw new Exception('Geef minimaal 1 ingrediënt op ');
         }
 
         // Voorlopig een standaard bericht teruggeven

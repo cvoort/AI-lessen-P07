@@ -3,10 +3,12 @@
 
 use classes\AIWrapper;
 use classes\RecipeFormatter;
+use classes\Recipe;
 
 require_once 'config/config.php';
 require_once 'classes/AIWrapper.php';
 require_once 'classes/RecipeFormatter.php';
+require_once 'classes/Recipe.php';
 //require 'process.php';
 
 $recepten = [];
@@ -85,30 +87,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['ingredients'])) {
 <!--    --><?php //endif; ?>
 
     <?php if ($recepten) : ?>
-    <?php foreach($recepten as $recept): ?>
+<!--    --><?php //foreach($recepten as $recept): ?>
 
     <div class="recipe-card">
-        <h2> <?=htmlspecialchars($recept->naam) ?></h2>
+        <h2> <?=htmlspecialchars($recepten->naam) ?></h2>
         <div class="recipe-details">
-            <p><strong>Bereidingstijd:</strong> <?= htmlspecialchars($recept->bereidingstijd)?> </p>
-            <p><strong>Moeilijkheidsgraad:</strong> <?= htmlspecialchars($recept->moeilijkheidsgraad) ?></p>
+            <p><strong>Bereidingstijd:</strong> <?= htmlspecialchars($recepten->bereidingstijd)?> </p>
+            <p><strong>Moeilijkheidsgraad:</strong> <?= htmlspecialchars($recepten->moeilijkheidsgraad) ?></p>
         </div>
 
         <h3>Ingrediënten:</h3>
         <ul>
-            <?php foreach ($recept->ingredienten as $ingredient) {
+            <?php foreach ($recepten->ingredienten as $ingredient) {
                 echo '<li>' . htmlspecialchars($ingredient) . '</li>';
             } ?>
         </ul>
 
         <h3>Bereidingswijze:</h3>
         <ol>
-            <?php foreach ($recept->stappen as $stap) {
+            <?php foreach ($recepten->stappen as $stap) {
                 echo '<li>' . htmlspecialchars($stap) . '</li>';
             } ?>
         </ol>
     </div>
-        <?php endforeach ?>
+<!--        --><?php //endforeach ?>
     <?php endif ?>
 </div>
 </body>

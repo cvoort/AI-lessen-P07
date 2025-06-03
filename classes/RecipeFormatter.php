@@ -27,4 +27,24 @@ class RecipeFormatter
             return null;
         }
     }
+//
+//    // Voeg deze methode toe aan je RecipeFormatter class
+//    public function tryExtractRecipe(string $rawOutput): ?Recipe {
+//        // Eerst proberen als JSON te parsen
+//        $recipe = $this->formatRecipe($rawOutput);
+//        if ($recipe) return $recipe;
+//        // Als dat mislukt, proberen we een minder strenge methode
+//        // Bijvoorbeeld: reguliere expressies gebruiken om data te extraheren
+//        $naam = $this->extractName($rawOutput);
+//        $ingrediënten = $this->extractIngredients($rawOutput);
+//        // ... andere extracties
+//        if ($naam && !empty($ingrediënten)) {
+//            return new Recipe($naam, $ingrediënten, "Onbekend", [], "Onbekend");
+//        }
+//        return null;
+//    }
+//
+//    private function extractName(string $rawOutput): ?string {
+//        /* ... */
+//    }
 }
