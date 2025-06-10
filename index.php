@@ -79,15 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['ingredients'])) {
         </div>
         <button type="submit">Genereer Recept</button>
     </form>
-<!--    --><?php //if ($recipe): ?>
-<!--        <div class="recipe">-->
-<!--            <h2>Gegenereerd Recept</h2>-->
-<!--            <pre>--><?php //echo htmlspecialchars($recipe); ?><!--</pre>-->
-<!--        </div>-->
-<!--    --><?php //endif; ?>
+
 
     <?php if ($recepten) : ?>
-<!--    --><?php //foreach($recepten as $recept): ?>
 
     <div class="recipe-card">
         <h2> <?=htmlspecialchars($recepten->naam) ?></h2>
@@ -110,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['ingredients'])) {
             } ?>
         </ol>
     </div>
-<!--        --><?php //endforeach ?>
     <?php endif ?>
 </div>
 </body>
